@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分帳小幫手 - 朋友聚會分帳 App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+        }
+        
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4ade80;
+            --danger: #f87171;
+            --warning: #fbbf24;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .app-content {
+            padding: 25px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f0f4f8;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 25px;
+        }
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            font-size: 1.3rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f4f8;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-item.selected {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .checkbox-item input {
+            display: none;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            margin-top: 10px;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .expense-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+        }
+        
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--accent);
+        }
+        
+        .expense-details {
+            flex: 1;
+        }
+        
+        .expense-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .expense-meta {
+            font-size: 0.85rem;
+            color: #666;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .expense-amount {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(248, 113, 113, 0.1);
+        }
+        
+        .settlement-section {
+            background: #f0f7ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px dashed var(--accent);
+        }
+        
+        .settlement-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e7ff;
+        }
+        
+        .settlement-item:last-child {
+            border-bottom: none;
+        }
+        
+        .settle-btn {
+            background: var(--success);
+            margin-top: 15px;
+        }
+        
+        .settle-btn:hover {
+            background: #22c55e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 222, 128, 0.3);
+        }
+        
+        .no-expenses {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+        
+        .no-expenses i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .summary-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .total-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .summary-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .summary-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .summary-item .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                border-radius: 15px;
+            }
+            
+            header {
+                padding: 20px 15px;
+            }
+            
+            .app-content {
+                padding: 20px 15px;
+            }
+            
+            .expense-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .expense-amount {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-receipt"></i> 分帳小幫手</h1>
+            <p>輕鬆記錄開銷，公平分攤帳單</p>
+        </header>
+        
+        <div class="app-content">
+            <div class="tabs">
+                <div class="tab active" data-tab="expenses">記錄開銷</div>
+                <div class="tab" data-tab="summary">結算明細</div>
+                <div class="tab" data-tab="history">歷史紀錄</div>
+            </div>
+            
+            <div class="tab-content active" id="expenses-tab">
+                <div class="form-group">
+                    <h2 class="section-title"><i class="fas fa-utensils"></i> 新增開銷</h2>
+                    <label for="expense-name">項目名稱</label>
+                    <input type="text" id="expense-name" placeholder="餐費、飲料、門票...">
+                    
+                    <label for="expense-amount">金額 (NT$)</label>
+                    <input type="number" id="expense-amount" placeholder="輸入金額">
+                    
+                    <label for="payer">付款人</label>
+                    <select id="payer">
+                        <option value="">-- 請選擇 --</option>
+                    </select>
+                    
+                    <label>分攤對象</label>
+                    <div class="checkbox-group" id="split-with">
+                        <!-- 將由 JavaScript 動態生成 -->
+                    </div>
+                    
+                    <button class="btn btn-primary" id="add-expense">
+                        <i class="fas fa-plus-circle"></i> 新增開銷
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <h2 class="section-title"><i class="fas fa-list"></i> 開銷清單</h2>
+                    <div class="expense-list" id="expense-list">
+                        <div class="no-expenses">
+                            <i class="fas fa-clipboard-list"></i>
+                            <p>尚未添加任何開銷</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="calculate-btn">
+                    <i class="fas fa-calculator"></i> 計算分帳
+                </button>
+            </div>
+            
+            <div class="tab-content" id="summary-tab">
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <div class="summary-title">本次聚會結算</div>
+                        <div><i class="fas fa-users"></i> <span id="total-people">0</span>人</div>
+                    </div>
+                    
+                    <div class="total-amount">NT$ <span id="total-amount">0</span></div>
+                    
+                    <div class="summary-details">
+                        <div class="summary-item">
+                            <div>總開銷</div>
+                            <div class="value">NT$ <span id="total-expenses">0</span></div>
+                        </div>
+                        <div class="summary-item">
+                            <div>人均分攤</div>
+                            <div class="value">NT$ <span id="per-person">0</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="section-title"><i class="fas fa-exchange-alt"></i> 結算建議</h2>
+                
+                <div class="settlement-section" id="settlement-section">
+                    <div class="no-expenses">
+                        <i class="fas fa-calculator"></i>
+                        <p>請先記錄開銷並計算分帳</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="history-tab">
+                <h2 class="section-title"><i class="fas fa-history"></i> 歷史紀錄</h2>
+                
+                <div class="expense-list" id="history-list">
+                    <div class="no-expenses">
+                        <i class="fas fa-history"></i>
+                        <p>尚無歷史紀錄</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化資料
+        let expenses = [];
+        let friends = [];
+        let history = [];
+        
+        // DOM 元素
+        const payerSelect = document.getElementById('payer');
+        const splitWithGroup = document.getElementById('split-with');
+        const expenseList = document.getElementById('expense-list');
+        const historyList = document.getElementById('history-list');
+        
+        // 切換標籤頁
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                const tabId = `${tab.dataset.tab}-tab`;
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // 新增朋友功能
+        function addFriend(name) {
+            if (!friends.includes(name)) {
+                friends.push(name);
+                
+                // 添加到付款人下拉選單
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                payerSelect.appendChild(option);
+                
+                // 添加到分攤對象選擇
+                const checkboxItem = document.createElement('div');
+                checkboxItem.className = 'checkbox-item selected';
+                checkboxItem.dataset.person = name;
+                checkboxItem.innerHTML = `
+                    <input type="checkbox" checked value="${name}"> ${name}
+                `;
+                checkboxItem.addEventListener('click', () => {
+                    checkboxItem.classList.toggle('selected');
+                    const checkbox = checkboxItem.querySelector('input');
+                    checkbox.checked = !checkbox.checked;
+                });
+                splitWithGroup.appendChild(checkboxItem);
+            }
+        }
+        
+        // 初始化朋友名單（空白，由使用者自行添加）
+        function initFriends() {
+            // 範例：預設空名單，實際使用時可以通過UI添加
+            // addFriend('小明');
+            // addFriend('小華');
+        }
+        
+        // 新增開銷功能
+        document.getElementById('add-expense').addEventListener('click', () => {
+            const nameInput = document.getElementById('expense-name');
+            const amountInput = document.getElementById('expense-amount');
+            const payer = payerSelect.value;
+            
+            const name = nameInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            
+            if (!name || isNaN(amount) || amount <= 0) {
+                alert('請填寫有效的項目名稱和金額');
+                return;
+            }
+            
+            if (!payer) {
+                alert('請選擇付款人');
+                return;
+            }
+            
+            // 獲取分攤對象
+            const splitWith = [];
+            document.querySelectorAll('#split-with .checkbox-item.selected').forEach(item => {
+                splitWith.push(item.dataset.person);
+            });
+            
+            if (splitWith.length === 0) {
+                alert('請至少選擇一個分攤對象');
+                return;
+            }
+            
+            // 添加到開銷列表
+            const expense = {
+                id: Date.now(),
+                name,
+                amount,
+                payer,
+                splitWith,
+                date: new Date().toLocaleDateString()
+            };
+            
+            expenses.push(expense);
+            renderExpenseList();
+            
+            // 清空輸入欄位
+            nameInput.value = '';
+            amountInput.value = '';
+            nameInput.focus();
+        });
+        
+        // 渲染開銷列表
+        function renderExpenseList() {
+            if (expenses.length === 0) {
+                expenseList.innerHTML = `
+                    <div class="no-expenses">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>尚未添加任何開銷</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            expenseList.innerHTML = '';
+            expenses.forEach(expense => {
+                const expenseItem = document.createElement('div');
+                expenseItem.className = 'expense-item';
+                expenseItem.innerHTML = `
+                    <div class="expense-details">
+                        <div class="expense-title">${expense.name}</div>
+                        <div class="expense-meta">
+                            <span><i class="fas fa-user"></i> ${expense.payer}付款</span>
+                            <span><i class="fas fa-users"></i> ${expense.splitWith.length}人分攤</span>
+                            <span><i class="fas fa-calendar"></i> ${expense.date}</span>
+                        </div>
+                    </div>
+                    <div class="expense-amount">NT$ ${expense.amount.toLocaleString()}</div>
+                    <button class="delete-btn" data-id="${expense.id}"><i class="fas fa-trash-alt"></i></button>
+                `;
+                
+                expenseList.appendChild(expenseItem);
+            });
+            
+            // 添加刪除事件
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.currentTarget.dataset.id);
+                    expenses = expenses.filter(exp => exp.id !== id);
+                    renderExpenseList();
+                });
+            });
+        }
+        
+        // 計算分帳
+        document.getElementById('calculate-btn').addEventListener('click', () => {
+            if (expenses.length === 0) {
+                alert('請先添加開銷');
+                return;
+            }
+            
+            calculateSettlement();
+            
+            // 切換到結算明細頁面
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector('[data-tab="summary"]').classList.add('active');
+            document.getElementById('summary-tab').classList.add('active');
+        });
+        
+        // 計算結算邏輯
+        function calculateSettlement() {
+            // 收集所有參與的朋友
+            const allFriends = new Set();
+            expenses.forEach(exp => {
+                allFriends.add(exp.payer);
+                exp.splitWith.forEach(f => allFriends.add(f));
+            });
+            
+            // 初始化每人總支出和應付金額
+            const totalPaid = {};
+            const shouldPay = {};
+            Array.from(allFriends).forEach(f => {
+                totalPaid[f] = 0;
+                shouldPay[f] = 0;
+            });
+            
+            // 計算每人實際支付金額
+            expenses.forEach(exp => {
+                totalPaid[exp.payer] += exp.amount;
+                
+                // 計算每人應付金額
+                const perPerson = exp.amount / exp.splitWith.length;
+                exp.splitWith.forEach(f => {
+                    shouldPay[f] += perPerson;
+                });
+            });
+            
+            // 計算淨額（正數表示應收，負數表示應付）
+            const netAmount = {};
+            Array.from(allFriends).forEach(f => {
+                netAmount[f] = totalPaid[f] - shouldPay[f];
+            });
+            
+            // 計算總金額和人均
+            const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const perPerson = totalExpenses / allFriends.size;
+            
+            // 更新UI
+            document.getElementById('total-people').textContent = allFriends.size;
+            document.getElementById('total-amount').textContent = totalExpenses.toLocaleString();
+            document.getElementById('total-expenses').textContent = totalExpenses.toLocaleString();
+            document.getElementById('per-person').textContent = perPerson.toLocaleString(undefined, { maximumFractionDigits: 0 });
+            
+            // 生成結算建議
+            generateSettlements(netAmount);
+        }
+        
+        // 生成結算建議
+        function generateSettlements(netAmount) {
+            const settlementSection = document.getElementById('settlement-section');
+            settlementSection.innerHTML = '';
+            
+            // 將朋友分為債權人（正數）和債務人（負數）
+            const creditors = [];
+            const debtors = [];
+            
+            for (const [person, amount] of Object.entries(netAmount)) {
+                if (amount > 0) {
+                    creditors.push({ person, amount });
+                } else if (amount < 0) {
+                    debtors.push({ person, amount: -amount });
+                }
+            }
+            
+            // 按金額排序
+            creditors.sort((a, b) => b.amount - a.amount);
+            debtors.sort((a, b) => b.amount - a.amount);
+            
+            // 匹配結算
+            let i = 0, j = 0;
+            const settlements = [];
+            
+            while (i < creditors.length && j < debtors.length) {
+                const creditor = creditors[i];
+                const debtor = debtors[j];
+                
+                const settleAmount = Math.min(creditor.amount, debtor.amount);
+                
+                if (settleAmount > 0) {
+                    settlements.push({
+                        from: debtor.person,
+                        to: creditor.person,
+                        amount: settleAmount
+                    });
+                    
+                    creditor.amount -= settleAmount;
+                    debtor.amount -= settleAmount;
+                }
+                
+                if (creditor.amount === 0) i++;
+                if (debtor.amount === 0) j++;
+            }
+            
+            // 顯示結算建議
+            if (settlements.length === 0) {
+                const item = document.createElement('div');
+                item.className = 'settlement-item';
+                item.textContent = '無需結算，帳目已平衡';
+                settlementSection.appendChild(item);
+            } else {
+                settlements.forEach(settle => {
+                    const item = document.createElement('div');
+                    item.className = 'settlement-item';
+                    item.innerHTML = `
+                        <div>${settle.from} 需支付給 ${settle.to}</div>
+                        <div class="amount">NT$ ${settle.amount.toLocaleString()}</div>
+                    `;
+                    settlementSection.appendChild(item);
+                });
+            }
+            
+            // 添加結清按鈕
+            const settleBtn = document.createElement('button');
+            settleBtn.className = 'btn btn-primary settle-btn';
+            settleBtn.innerHTML = '<i class="fas fa-check-circle"></i> 全部結清';
+            settleBtn.addEventListener('click', () => {
+                // 添加到歷史紀錄
+                const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+                const participants = new Set();
+                expenses.forEach(exp => {
+                    participants.add(exp.payer);
+                    exp.splitWith.forEach(f => participants.add(f));
+                });
+                
+                history.push({
+                    id: Date.now(),
+                    title: `聚會 ${new Date().toLocaleDateString()}`,
+                    date: new Date().toLocaleDateString(),
+                    total: totalExpenses,
+                    people: participants.size,
+                    expenses: [...expenses]
+                });
+                
+                // 重置當前開銷
+                expenses = [];
+                renderExpenseList();
+                renderHistoryList();
+                
+                alert('已標記為結清！本次聚會已存檔至歷史紀錄');
+            });
+            
+            settlementSection.appendChild(settleBtn);
+        }
+        
+        // 渲染歷史紀錄
+        function renderHistoryList() {
+            if (history.length === 0) {
+                historyList.innerHTML = `
+                    <div class="no-expenses">
+                        <i class="fas fa-history"></i>
+                        <p>尚無歷史紀錄</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            historyList.innerHTML = '';
+            history.forEach(item => {
+                const expenseItem = document.createElement('div');
+                expenseItem.className = 'expense-item';
+                expenseItem.innerHTML = `
+                    <div class="expense-details">
+                        <div class="expense-title">${item.title}</div>
+                        <div class="expense-meta">
+                            <span><i class="fas fa-calendar"></i> ${item.date}</span>
+                            <span><i class="fas fa-user-friends"></i> ${item.people}人</span>
+                        </div>
+                    </div>
+                    <div class="expense-amount">NT$ ${item.total.toLocaleString()}</div>
+                `;
+                
+                historyList.appendChild(expenseItem);
+            });
+        }
+        
+        // 初始化應用
+        function initApp() {
+            initFriends();
+            renderExpenseList();
+            renderHistoryList();
+        }
+        
+        // 添加朋友按鈕（範例，實際應用中可以通過UI添加）
+        document.addEventListener('DOMContentLoaded', () => {
+            // 預設添加幾個朋友（可以移除這部分讓使用者自行添加）
+            addFriend('小明');
+            addFriend('小華');
+            addFriend('小美');
+            addFriend('小傑');
+            
+            initApp();
+        });
+    </script>
+</body>
+</html>
